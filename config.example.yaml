@@ -1,0 +1,24 @@
+app_name: ninjam-chatbot
+log_file: stdout
+log_level: debug
+daemon: false
+servers:
+- server:
+  host: guitar-jam.ru
+  port: 2051
+  anonymous: true
+  user_name: chatbot
+  user_password:
+- server:
+  host: guitar-jam.ru
+  port: 2050
+  anonymous: true
+  user_name: chatbot
+  user_password:
+telegram:
+  token: some:token
+  chat_id: 0
+slack:
+  bot_name: jambot
+  token: some-token
+  channel: general

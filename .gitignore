@@ -1,0 +1,6 @@
+.idea
+ninjam-chatbot
+*.log
+logs
+config.yaml
+app.pid
