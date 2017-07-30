@@ -152,6 +152,19 @@ f:
 			if strings.HasPrefix(msg.Message.Name, msg.Bot.UserName()) {
 				continue
 			}
+
+			for _, userName := range config.Get().IgnoreUsers {
+				if strings.HasPrefix(msg.Message.Name, userName) {
+					continue f
+				}
+			}
+
+			for _, botName := range config.Get().IgnorePrefix {
+				if strings.HasPrefix(msg.Message.Text, botName) {
+					continue f
+				}
+			}
+
 			message := fmt.Sprintf("%s@%s:%s: %s", msg.Message.Name, msg.Bot.Host(), msg.Bot.Port(), msg.Message.Text)
 
 			switch  msg.Message.Type {

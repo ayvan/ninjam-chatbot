@@ -21,6 +21,8 @@ type AppConfig struct {
 	Telegram      TelegramConf   `yaml:"telegram"`
 	Slack         SlackConf      `yaml:"slack"`
 	Servers       []NinJamServer `yaml:"servers"`
+	IgnoreUsers   []string       `yaml:"ignore_users"`
+	IgnorePrefix  []string       `yaml:"ignore_prefix"`
 }
 
 type NinJamServer struct {
@@ -39,7 +41,7 @@ type TelegramConf struct {
 type SlackConf struct {
 	BotName string `yaml:"bot_name"`
 	Token   string `yaml:"token"`
-	Channel string  `yaml:"channel"`
+	Channel string `yaml:"channel"`
 }
 
 var appConfig *AppConfig

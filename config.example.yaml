@@ -2,6 +2,11 @@ app_name: ninjam-chatbot
 log_file: stdout
 log_level: debug
 daemon: false
+ignore_users:
+ - username1
+ - username2
+ignore_prefix:
+- botname
 servers:
 - server:
   host: guitar-jam.ru
