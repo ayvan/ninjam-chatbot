@@ -239,8 +239,12 @@ func (n *NinJamBot) read(conn net.Conn, returnChan chan bool) {
 			b := make([]byte, 5)
 			length, err := reader.Read(b)
 
-			if err != nil || length < 5 {
+			if err != nil {
 				logrus.Info("Error reading:", err.Error())
+				returnChan <- true
+				return
+			} else if length < 5 {
+				logrus.Info("Error reading: read less than 5 bytes")
 				returnChan <- true
 				return
 			}
