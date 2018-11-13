@@ -200,6 +200,7 @@ f:
 			for _, bot := range bots {
 				bot.SendMessage(message)
 			}
+			logrus.Infof("Sendind to Slack: %s", message)
 			sbot.SendMessage(message)
 		case msg := <-sbotChan:
 			message := fmt.Sprintf("%s@slack: %s", msg.Name, msg.Text)
@@ -207,6 +208,7 @@ f:
 			for _, bot := range bots {
 				bot.SendMessage(message)
 			}
+			logrus.Infof("Sendind to Telegram: %s", message)
 			tbot.SendMessage(message)
 		}
 
