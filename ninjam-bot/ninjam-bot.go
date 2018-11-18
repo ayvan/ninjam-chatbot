@@ -13,6 +13,7 @@ import (
 type NinJamBot struct {
 	keepAliveTicker    *time.Ticker
 	toServerChan       chan []byte
+	inAuthNow          bool
 	sigChan            chan bool
 	users              map[string]string
 	anonymous          bool
@@ -131,6 +132,10 @@ func (n *NinJamBot) connect() {
 		for {
 			select {
 			case <-n.keepAliveTicker.C:
+				// пока авторизуемся - тикер вырубаем
+				if n.inAuthNow {
+					continue
+				}
 				n.toServerChan <- []byte{models.ClientKeepaliveType, 0, 0, 0, 0}
 			case <-toServerErrorChan:
 				returnChan <- true
@@ -318,6 +323,13 @@ func (n *NinJamBot) handle(netMessage *models.NetMessage) {
 	}()
 	switch netMessage.Type {
 	case models.ServerAuthChallengeType:
+		n.inAuthNow = true
+		go func() {
+			// через 10 секунд всё равно отключим режим авторизации, если даже не получим ответа - в крайнем случае
+			// по тикеру пошлём KeepAlive и переконнектимся после ошибки отправки
+			time.Sleep(time.Second * 10)
+			n.inAuthNow = false
+		}()
 		serverAuthChallenge := netMessage.InPayload.(*models.ServerAuthChallenge)
 
 		answer, err := n.login(serverAuthChallenge)
@@ -345,6 +357,7 @@ func (n *NinJamBot) handle(netMessage *models.NetMessage) {
 		} else {
 			logrus.Errorf("Login failed: %s", string(serverAuthReply.ErrorMessage))
 		}
+		n.inAuthNow = false
 	case models.ServerUserInfoChangeNotifyType:
 		serverUserInfo := netMessage.InPayload.(*models.ServerUserInfoChangeNotify)
 
