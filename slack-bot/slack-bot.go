@@ -112,13 +112,13 @@ func (sb *SlackBot) connect() {
 				text = ev.Text
 
 				u, err := rtm.GetUserInfo(ev.User)
-				userName = u.Name
+				userName = u.Profile.DisplayName
 
 				if err != nil {
 					logrus.Error("GetUserInfo error:", err)
 				}
 
-				if userName == sb.botName {
+				if userName == sb.botName || u.Name == sb.botName {
 					continue
 				}
 
