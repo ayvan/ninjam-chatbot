@@ -231,8 +231,7 @@ func (n *NinJamBot) ChannelInit() {
 	channelInfo := &models.ClientSetChannelInfo{
 		Channels: []models.ChannelInfo{
 			{
-				Name:   "Backing Track",
-				Volume: -120,
+				Name: "BackingTrack",
 			},
 		},
 	}
@@ -267,7 +266,7 @@ func (n *NinJamBot) IntervalBegin(guid [16]byte, channelIndex uint8) {
 }
 
 func (n *NinJamBot) IntervalWrite(guid [16]byte, data []byte, flags uint8) {
-	nm := models.NewNetMessage(models.ClientUploadIntervalBeginType)
+	nm := models.NewNetMessage(models.ClientUploadIntervalWriteType)
 
 	cm := &models.ClientUploadIntervalWrite{
 		GUID:      guid,

@@ -46,8 +46,8 @@ func (c *ClientSetChannelInfo) Marshal() (data []byte, err error) {
 
 		channelsData = append(channelsData, channel.Flags)
 
-		cps := make([]byte, 4)
-		binary.LittleEndian.PutUint16(cps, uint16(len(channelsData)))
+		cps := make([]byte, 2)
+		binary.LittleEndian.PutUint16(cps, uint16(6)) // i don't know why it's always 6...
 
 		data = append(data, cps...)
 		data = append(data, channelsData...)
