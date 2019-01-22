@@ -23,7 +23,9 @@ servers:
 telegram:
   token: some:token
   chat_id: 0
+  disabled: true
 slack:
   bot_name: jambot
   token: some-token
   channel: general
+  disabled: true

@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 	"bytes"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"runtime/debug"
 )
 
@@ -40,9 +40,7 @@ func (s *ServerUserInfoChangeNotify) Unmarshal(data []byte) (err error) {
 		}
 
 		userInfo := UserInfo{}
-
 		userInfo.Active = uint8(data[0])
-
 		userInfo.ChannelIndex = uint8(data[1])
 
 		copy(userInfo.Volume[:], data[2:4])

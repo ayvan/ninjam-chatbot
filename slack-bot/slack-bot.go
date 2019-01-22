@@ -2,7 +2,7 @@ package slack_bot
 
 import (
 	"github.com/Ayvan/ninjam-chatbot/models"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/nlopes/slack"
 	"strings"
 	"time"
@@ -17,6 +17,7 @@ type SlackBot struct {
 	messagesToSlack   chan string
 	messagesFromSlack chan models.Message
 	models.Mountser
+	disabled bool
 }
 
 func NewSlackBot(token, channel, botName string, mounts models.Mountser) *SlackBot {
@@ -31,17 +32,27 @@ func NewSlackBot(token, channel, botName string, mounts models.Mountser) *SlackB
 	}
 }
 
+func (sb *SlackBot) Disabled(disabled bool) {
+	sb.disabled = disabled
+}
+
 func (sb *SlackBot) IncomingMessages() <-chan models.Message {
 	return sb.messagesFromSlack
 }
 
 func (sb *SlackBot) SendMessage(message string) {
+	if sb.disabled {
+		return
+	}
 	go func() {
 		sb.messagesToSlack <- message
 	}()
 }
 
 func (sb *SlackBot) Connect() {
+	if sb.disabled {
+		return
+	}
 f:
 	for {
 		select {
@@ -57,6 +68,9 @@ f:
 }
 
 func (sb *SlackBot) Stop() {
+	if sb.disabled {
+		return
+	}
 	sb.sigChan <- true
 }
 
@@ -76,7 +90,11 @@ func (sb *SlackBot) connect() {
 	rtm := api.NewRTM()
 	go rtm.ManageConnection()
 
-	cnls, _ := rtm.GetChannels(true)
+	cnls, err := rtm.GetChannels(true)
+
+	if err != nil {
+		logrus.Errorf("Slack GetChannels error: %s", err)
+	}
 
 	for _, c := range cnls {
 		if c.Name == sb.channel {

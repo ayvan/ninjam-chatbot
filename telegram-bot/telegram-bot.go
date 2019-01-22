@@ -2,7 +2,7 @@ package telegram_bot
 
 import (
 	"github.com/Ayvan/ninjam-chatbot/models"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"strings"
 	"time"
@@ -15,6 +15,7 @@ type TelegramBot struct {
 	messagesToTelegram   chan string
 	messagesFromTelegram chan models.Message
 	models.Mountser
+	disabled bool
 }
 
 func NewTelegramBot(token string, chatID int64, mounts models.Mountser) *TelegramBot {
@@ -28,17 +29,27 @@ func NewTelegramBot(token string, chatID int64, mounts models.Mountser) *Telegra
 	}
 }
 
+func (t *TelegramBot) Disabled(disabled bool) {
+	t.disabled = disabled
+}
+
 func (t *TelegramBot) IncomingMessages() <-chan models.Message {
 	return t.messagesFromTelegram
 }
 
 func (t *TelegramBot) SendMessage(message string) {
+	if t.disabled {
+		return
+	}
 	go func() {
 		t.messagesToTelegram <- message
 	}()
 }
 
 func (t *TelegramBot) Connect() {
+	if t.disabled {
+		return
+	}
 f:
 	for {
 		select {
@@ -54,6 +65,9 @@ f:
 }
 
 func (t *TelegramBot) Stop() {
+	if t.disabled {
+		return
+	}
 	t.sigChan <- true
 }
 

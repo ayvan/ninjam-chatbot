@@ -2,7 +2,7 @@ package config
 
 import (
 	"flag"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/luci/go-render/render"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -34,14 +34,16 @@ type NinJamServer struct {
 }
 
 type TelegramConf struct {
-	Token  string `yaml:"token"`
-	ChatID int64  `yaml:"chat_id"`
+	Token    string `yaml:"token"`
+	ChatID   int64  `yaml:"chat_id"`
+	Disabled bool   `yaml:"disabled"`
 }
 
 type SlackConf struct {
-	BotName string `yaml:"bot_name"`
-	Token   string `yaml:"token"`
-	Channel string `yaml:"channel"`
+	BotName  string `yaml:"bot_name"`
+	Token    string `yaml:"token"`
+	Channel  string `yaml:"channel"`
+	Disabled bool   `yaml:"disabled"`
 }
 
 var appConfig *AppConfig

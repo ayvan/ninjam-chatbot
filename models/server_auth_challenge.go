@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 	"fmt"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"bytes"
 	"encoding/binary"
 )

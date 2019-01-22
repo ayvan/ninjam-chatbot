@@ -3,18 +3,18 @@ package main
 import (
 	"fmt"
 	"github.com/Ayvan/ninjam-chatbot/config"
+	"github.com/Ayvan/ninjam-chatbot/models"
 	"github.com/Ayvan/ninjam-chatbot/ninjam-bot"
+	"github.com/Ayvan/ninjam-chatbot/slack-bot"
 	"github.com/Ayvan/ninjam-chatbot/telegram-bot"
-	"github.com/Sirupsen/logrus"
+	"github.com/VividCortex/godaemon"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
-	"github.com/Ayvan/ninjam-chatbot/models"
-	"strings"
-	"github.com/VividCortex/godaemon"
-	"github.com/Ayvan/ninjam-chatbot/slack-bot"
 )
 
 type Mounts struct {
@@ -71,8 +71,14 @@ func main() {
 	}
 
 	tbot := telegram_bot.NewTelegramBot(config.Get().Telegram.Token, config.Get().Telegram.ChatID, mounts)
+	if config.Get().Telegram.Disabled {
+		tbot.Disabled(true)
+	}
 
 	sbot := slack_bot.NewSlackBot(config.Get().Slack.Token, config.Get().Slack.Channel, config.Get().Slack.BotName, mounts)
+	if config.Get().Slack.Disabled {
+		sbot.Disabled(true)
+	}
 
 	// инициализируем глобальный канал завершения горутин
 	sigChan := make(chan bool, 1)
@@ -167,7 +173,7 @@ f:
 
 			message := fmt.Sprintf("%s@%s:%s: %s", msg.Message.Name, msg.Bot.Host(), msg.Bot.Port(), msg.Message.Text)
 
-			switch  msg.Message.Type {
+			switch msg.Message.Type {
 			case models.MSG:
 				logrus.Infof("Sendind to Telegram: %s", message)
 				tbot.SendMessage(message)

@@ -2,7 +2,7 @@ package models
 
 import (
 	"fmt"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"crypto/sha1"
 	"encoding/binary"
 )

@@ -1,13 +1,13 @@
 package ninjam_bot
 
 import (
-	"github.com/Sirupsen/logrus"
-	"time"
-	"net"
 	"bufio"
-	"github.com/luci/go-render/render"
-	"runtime"
 	"github.com/Ayvan/ninjam-chatbot/models"
+	"github.com/sirupsen/logrus"
+	"github.com/luci/go-render/render"
+	"net"
+	"runtime"
+	"time"
 )
 
 type NinJamBot struct {
@@ -154,9 +154,9 @@ func (n *NinJamBot) connect() {
 		for {
 			select {
 			case message := <-n.messagesToNinJam:
-				n.sendToNinJam(message, models.MSG)
+				n.sendChatMessage(message, models.MSG)
 			case message := <-n.adminMessages:
-				n.sendToNinJam(message, models.ADMIN)
+				n.sendChatMessage(message, models.ADMIN)
 			case s := <-n.sigChan:
 				n.sigChan <- s
 				// получена команда выйти из горутины
@@ -209,7 +209,7 @@ func dialNinjamServer(host, port string) (conn net.Conn, err error) {
 	return conn, nil
 }
 
-func (n *NinJamBot) sendToNinJam(message string, msgType string) {
+func (n *NinJamBot) sendChatMessage(message string, msgType string) {
 	nm := models.NewNetMessage(models.ChatMessageType)
 
 	cm := &models.ChatMessage{
@@ -217,6 +217,63 @@ func (n *NinJamBot) sendToNinJam(message string, msgType string) {
 		Arg1:    []byte(message),
 	}
 
+	nm.OutPayload = cm
+
+	msg, err := nm.Marshal()
+	if err != nil {
+		logrus.Error("Send message to ninjam marshal error:", err)
+	}
+
+	n.toServerChan <- msg
+}
+
+func (n *NinJamBot) ChannelInit() {
+	channelInfo := &models.ClientSetChannelInfo{
+		Channels: []models.ChannelInfo{
+			{
+				Name:   "Backing Track",
+				Volume: -120,
+			},
+		},
+	}
+
+	nm := models.NewNetMessage(models.ClientSetChannelInfoType)
+
+	nm.OutPayload = channelInfo
+
+	msg, err := nm.Marshal()
+	if err != nil {
+		logrus.Error("Send message to ninjam marshal error:", err)
+	}
+
+	n.toServerChan <- msg
+}
+
+func (n *NinJamBot) IntervalBegin(guid [16]byte, channelIndex uint8) {
+	nm := models.NewNetMessage(models.ClientUploadIntervalBeginType)
+
+	cm := &models.ClientUploadIntervalBegin{
+		GUID:         guid,
+		ChannelIndex: channelIndex,
+	}
+	nm.OutPayload = cm
+
+	msg, err := nm.Marshal()
+	if err != nil {
+		logrus.Error("Send message to ninjam marshal error:", err)
+	}
+
+	n.toServerChan <- msg
+}
+
+func (n *NinJamBot) IntervalWrite(guid [16]byte, data []byte, flags uint8) {
+	nm := models.NewNetMessage(models.ClientUploadIntervalBeginType)
+
+	cm := &models.ClientUploadIntervalWrite{
+		GUID:      guid,
+		AudioData: data,
+		Flags:     flags,
+	}
 	nm.OutPayload = cm
 
 	msg, err := nm.Marshal()
@@ -303,7 +360,9 @@ func (n *NinJamBot) sendToServer(conn net.Conn, toServerErrorChan chan bool) {
 	for {
 		runtime.Gosched()
 		res := <-n.toServerChan
-		logrus.Info("Sending to server: ", res)
+		if len(res) < 200 {
+			logrus.Info("Sending to server: ", res)
+		}
 		_, err := conn.Write(res)
 
 		if err != nil {
