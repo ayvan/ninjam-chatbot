@@ -249,6 +249,10 @@ func (n *NinJamBot) ChannelInit() {
 }
 
 func (n *NinJamBot) IntervalBegin(guid [16]byte, channelIndex uint8) {
+	if n.inAuthNow {
+		return
+	}
+
 	nm := models.NewNetMessage(models.ClientUploadIntervalBeginType)
 
 	cm := &models.ClientUploadIntervalBegin{
@@ -266,12 +270,16 @@ func (n *NinJamBot) IntervalBegin(guid [16]byte, channelIndex uint8) {
 }
 
 func (n *NinJamBot) IntervalWrite(guid [16]byte, data []byte, flags uint8) {
+	if n.inAuthNow {
+		return
+	}
+
 	nm := models.NewNetMessage(models.ClientUploadIntervalWriteType)
 
 	cm := &models.ClientUploadIntervalWrite{
 		GUID:      guid,
-		AudioData: data,
 		Flags:     flags,
+		AudioData: data,
 	}
 	nm.OutPayload = cm
 
@@ -301,7 +309,7 @@ func (n *NinJamBot) read(conn net.Conn, returnChan chan bool) {
 			length, err := reader.Read(b)
 
 			if err != nil {
-				logrus.Info("Error reading:", err.Error())
+				logrus.Infof("Error reading: %s", err.Error())
 				returnChan <- true
 				return
 			} else if length < 5 {
@@ -344,7 +352,9 @@ func (n *NinJamBot) read(conn net.Conn, returnChan chan bool) {
 			if err != nil {
 				logrus.Error("Error when unmarshalling payload:", err)
 			} else {
-				logrus.Info(render.Render(netMessage.InPayload))
+				if netMessage.InPayload != nil {
+					logrus.Info(render.Render(netMessage.InPayload))
+				}
 
 				logrus.Info("Raw bytes:", render.Render(netMessage.RawData))
 
