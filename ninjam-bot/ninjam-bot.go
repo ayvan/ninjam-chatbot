@@ -3,8 +3,8 @@ package ninjam_bot
 import (
 	"bufio"
 	"github.com/Ayvan/ninjam-chatbot/models"
-	"github.com/sirupsen/logrus"
 	"github.com/luci/go-render/render"
+	"github.com/sirupsen/logrus"
 	"net"
 	"runtime"
 	"time"
@@ -24,6 +24,8 @@ type NinJamBot struct {
 	messagesFromNinJam chan models.Message
 	messagesToNinJam   chan string
 	adminMessages      chan string
+
+	onSuccessAuth func()
 }
 
 func NewNinJamBot(host, port, userName, password string, anonymous bool) *NinJamBot {
@@ -227,11 +229,22 @@ func (n *NinJamBot) sendChatMessage(message string, msgType string) {
 	n.toServerChan <- msg
 }
 
-func (n *NinJamBot) ChannelInit() {
+// WaitAuth block until auth completed
+func (n *NinJamBot) WaitAuth() {
+	for n.inAuthNow {
+		time.Sleep(time.Millisecond)
+	}
+}
+
+func (n *NinJamBot) OnSuccessAuth(f func()) {
+	n.onSuccessAuth = f
+}
+
+func (n *NinJamBot) ChannelInit(name string) {
 	channelInfo := &models.ClientSetChannelInfo{
 		Channels: []models.ChannelInfo{
 			{
-				Name: "BackingTrack",
+				Name: name,
 			},
 		},
 	}
@@ -422,6 +435,10 @@ func (n *NinJamBot) handle(netMessage *models.NetMessage) {
 
 		if serverAuthReply.Flag == 0x1 {
 			logrus.Infof("Logged in succesfully: %s", string(serverAuthReply.ErrorMessage))
+
+			if n.onSuccessAuth != nil {
+				n.onSuccessAuth()
+			}
 		} else {
 			logrus.Errorf("Login failed: %s", string(serverAuthReply.ErrorMessage))
 		}
