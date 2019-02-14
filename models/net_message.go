@@ -73,6 +73,9 @@ func (nm *NetMessage) Unmarshal(data []byte) error {
 	case ServerUserInfoChangeNotifyType:
 		nm.InPayload = &ServerUserInfoChangeNotify{}
 		return nm.InPayload.Unmarshal(data)
+	case ServerConfigChangeNotifyType:
+		nm.InPayload = &ServerConfigChangeNotify{}
+		return nm.InPayload.Unmarshal(data)
 	}
 
 	return nil

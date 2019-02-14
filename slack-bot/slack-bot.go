@@ -1,7 +1,7 @@
 package slack_bot
 
 import (
-	"github.com/Ayvan/ninjam-chatbot/models"
+	"github.com/ayvan/ninjam-chatbot/models"
 	"github.com/sirupsen/logrus"
 	"github.com/nlopes/slack"
 	"strings"

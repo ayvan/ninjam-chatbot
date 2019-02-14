@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/Ayvan/ninjam-chatbot/config"
-	"github.com/Ayvan/ninjam-chatbot/models"
-	"github.com/Ayvan/ninjam-chatbot/ninjam-bot"
-	"github.com/Ayvan/ninjam-chatbot/slack-bot"
-	"github.com/Ayvan/ninjam-chatbot/telegram-bot"
+	"github.com/ayvan/ninjam-chatbot/config"
+	"github.com/ayvan/ninjam-chatbot/models"
+	"github.com/ayvan/ninjam-chatbot/ninjam-bot"
+	"github.com/ayvan/ninjam-chatbot/slack-bot"
+	"github.com/ayvan/ninjam-chatbot/telegram-bot"
 	"github.com/VividCortex/godaemon"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"

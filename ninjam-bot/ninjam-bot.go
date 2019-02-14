@@ -2,7 +2,7 @@ package ninjam_bot
 
 import (
 	"bufio"
-	"github.com/Ayvan/ninjam-chatbot/models"
+	"github.com/ayvan/ninjam-chatbot/models"
 	"github.com/luci/go-render/render"
 	"github.com/sirupsen/logrus"
 	"net"
@@ -25,7 +25,8 @@ type NinJamBot struct {
 	messagesToNinJam   chan string
 	adminMessages      chan string
 
-	onSuccessAuth func()
+	onSuccessAuth        func()
+	onServerConfigChange func(bpm, bpi uint)
 }
 
 func NewNinJamBot(host, port, userName, password string, anonymous bool) *NinJamBot {
@@ -236,8 +237,12 @@ func (n *NinJamBot) WaitAuth() {
 	}
 }
 
-func (n *NinJamBot) OnSuccessAuth(f func()) {
+func (n *NinJamBot) SetOnSuccessAuth(f func()) {
 	n.onSuccessAuth = f
+}
+
+func (n *NinJamBot) SetOnServerConfigChange(f func(bpm, bpi uint)) {
+	n.onServerConfigChange = f
 }
 
 func (n *NinJamBot) ChannelInit(name string) {
@@ -443,6 +448,12 @@ func (n *NinJamBot) handle(netMessage *models.NetMessage) {
 			logrus.Errorf("Login failed: %s", string(serverAuthReply.ErrorMessage))
 		}
 		n.inAuthNow = false
+	case models.ServerConfigChangeNotifyType:
+		serverConfig := netMessage.InPayload.(*models.ServerConfigChangeNotify)
+
+		if n.onServerConfigChange != nil {
+			n.onServerConfigChange(uint(serverConfig.BPM), uint(serverConfig.BPI))
+		}
 	case models.ServerUserInfoChangeNotifyType:
 		serverUserInfo := netMessage.InPayload.(*models.ServerUserInfoChangeNotify)
 

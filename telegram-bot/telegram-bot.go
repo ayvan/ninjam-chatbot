@@ -1,7 +1,7 @@
 package telegram_bot
 
 import (
-	"github.com/Ayvan/ninjam-chatbot/models"
+	"github.com/ayvan/ninjam-chatbot/models"
 	"github.com/sirupsen/logrus"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"strings"
