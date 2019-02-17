@@ -27,6 +27,7 @@ type NinJamBot struct {
 
 	onSuccessAuth        func()
 	onServerConfigChange func(bpm, bpi uint)
+	onUserinfoChange     func(user models.UserInfo)
 }
 
 func NewNinJamBot(host, port, userName, password string, anonymous bool) *NinJamBot {
@@ -245,6 +246,10 @@ func (n *NinJamBot) SetOnServerConfigChange(f func(bpm, bpi uint)) {
 	n.onServerConfigChange = f
 }
 
+func (n *NinJamBot) SetOnUserinfoChange(f func(user models.UserInfo)) {
+	n.onUserinfoChange = f
+}
+
 func (n *NinJamBot) ChannelInit(name string) {
 	channelInfo := &models.ClientSetChannelInfo{
 		Channels: []models.ChannelInfo{
@@ -460,8 +465,11 @@ func (n *NinJamBot) handle(netMessage *models.NetMessage) {
 		for _, userInfo := range serverUserInfo.UserInfos {
 			if userInfo.Active == 0x1 {
 				n.users[string(userInfo.Name)] = string(userInfo.Name)
-			} else {
+			} else if _, ok := n.users[string(userInfo.Name)]; ok {
 				delete(n.users, string(userInfo.Name))
+			}
+			if n.onUserinfoChange != nil {
+				n.onUserinfoChange(userInfo)
 			}
 		}
 		logrus.Infof("Users: %v", n.users)
