@@ -136,8 +136,10 @@ func (n *NinJamBot) connect() {
 		for {
 			select {
 			case <-n.keepAliveTicker.C:
+				logrus.Debug("keepAliveTicker tick...")
 				// пока авторизуемся - тикер вырубаем
 				if n.inAuthNow {
+					logrus.Debug("keepAliveTicker inAuthNow...")
 					continue
 				}
 				n.toServerChan <- []byte{models.ClientKeepaliveType, 0, 0, 0, 0}
@@ -389,6 +391,7 @@ func (n *NinJamBot) read(conn net.Conn, returnChan chan bool) {
 
 // получаем из канала ответы и пишем в сокет
 func (n *NinJamBot) sendToServer(conn net.Conn, toServerErrorChan chan bool) {
+	defer logrus.Debug("sendToServer finished")
 	for {
 		runtime.Gosched()
 		res := <-n.toServerChan
