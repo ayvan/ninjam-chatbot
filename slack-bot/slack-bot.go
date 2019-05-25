@@ -1,6 +1,7 @@
 package slack_bot
 
 import (
+	"encoding/json"
 	"github.com/ayvan/ninjam-chatbot/models"
 	"github.com/sirupsen/logrus"
 	"github.com/nlopes/slack"
@@ -114,6 +115,8 @@ func (sb *SlackBot) connect() {
 			// и отправляем его
 			rtm.SendMessage(message)
 		case msg := <-rtm.IncomingEvents:
+			msgJSON, _ := json.Marshal(msg)
+			logrus.Infof("Slack event received: %T %s", msg, string(msgJSON))
 			switch ev := msg.Data.(type) {
 			case *slack.MessageEvent:
 				// Пользователь, который написал боту

@@ -180,7 +180,6 @@ f:
 				logrus.Infof("Sendind to Slack: %s", message)
 				sbot.SendMessage(message)
 				for _, bot := range bots {
-					logrus.Error(bot.Host(), msg.Bot.Host(), bot.Port(), msg.Bot.Port())
 					if bot.Host() != msg.Bot.Host() || bot.Port() != msg.Bot.Port() {
 						logrus.Infof("Sendind to Ninjam %s:%s", bot.Host(), bot.Port())
 						bot.SendMessage(message)
