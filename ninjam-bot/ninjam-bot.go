@@ -129,6 +129,9 @@ func (n *NinJamBot) connect() {
 	returnChan := make(chan bool, 10)
 
 	defer conn.Close()
+	defer func() {
+		returnChan <- true
+	}()
 
 	toServerErrorChan := make(chan bool, 1)
 
@@ -145,6 +148,10 @@ func (n *NinJamBot) connect() {
 				n.toServerChan <- []byte{models.ClientKeepaliveType, 0, 0, 0, 0}
 			case <-toServerErrorChan:
 				returnChan <- true
+				return
+			case <-returnChan:
+				returnChan <- true
+				return
 			case s := <-n.sigChan:
 				returnChan <- true
 				n.sigChan <- s
@@ -163,6 +170,9 @@ func (n *NinJamBot) connect() {
 				n.sendChatMessage(message, models.MSG)
 			case message := <-n.adminMessages:
 				n.sendChatMessage(message, models.ADMIN)
+			case <-returnChan:
+				returnChan <- true
+				return
 			case s := <-n.sigChan:
 				n.sigChan <- s
 				// получена команда выйти из горутины
@@ -171,9 +181,6 @@ func (n *NinJamBot) connect() {
 		}
 	}()
 
-	defer func() {
-		returnChan <- true
-	}()
 	// блокирующая функция, если она вылетела - значит ошибка чтения коннекта, пробуем реконнект
 	n.read(conn, returnChan)
 }
