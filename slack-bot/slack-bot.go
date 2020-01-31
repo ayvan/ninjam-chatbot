@@ -3,11 +3,15 @@ package slack_bot
 import (
 	"encoding/json"
 	"github.com/ayvan/ninjam-chatbot/models"
-	"github.com/sirupsen/logrus"
 	"github.com/nlopes/slack"
+	"github.com/sirupsen/logrus"
+	"regexp"
 	"strings"
 	"time"
 )
+
+// regexp for user name replace in messages
+var userNameRegexp = regexp.MustCompile(`<@[a-zA-Z0-9]+>`)
 
 type SlackBot struct {
 	sigChan           chan bool
@@ -139,6 +143,12 @@ func (sb *SlackBot) connect() {
 					logrus.Error("GetUserInfo error:", err)
 				}
 
+				names := userNameRegexp.FindAllString(text, -1)
+				if len(names) > 0 {
+					userNames := sb.getNames(names, rtm)
+					text = replaceUserNames(text, userNames)
+				}
+
 				if userName == sb.botName || u.Name == sb.botName {
 					continue
 				}
@@ -229,6 +239,23 @@ func (sb *SlackBot) connect() {
 	}
 }
 
+func (sb *SlackBot) getNames(names []string, rtm *slack.RTM) map[string]string {
+	res := make(map[string]string)
+
+	for _, name := range names {
+		slackName := strings.Trim(name, "<@>")
+
+		user, err := rtm.GetUserInfo(slackName)
+		if err != nil {
+			logrus.Errorf("SlackBot.getNames %s", err)
+			continue
+		}
+		res[name] = user.Profile.DisplayName
+	}
+
+	return res
+}
+
 type Status struct {
 	Mount []Mount `xml:"mount"`
 }
@@ -237,4 +264,13 @@ type Mount struct {
 	Name      string `xml:"name"`
 	Listeners string `xml:"listeners"`
 	Users     string `xml:"users"`
+}
+
+func replaceUserNames(text string, names map[string]string) string {
+
+	for slackName, userName := range names {
+		text = strings.Replace(text, slackName, userName, -1)
+	}
+
+	return text
 }
