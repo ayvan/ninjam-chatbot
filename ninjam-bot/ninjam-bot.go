@@ -505,14 +505,14 @@ func (n *NinJamBot) handle(netMessage *models.NetMessage) {
 				Name: string(chatMessage.Arg1),
 			}
 			n.messagesFromNinJam <- m
-			logrus.Infof(" %s joined", chatMessage.Arg1)
+            logrus.Infof("%s joined", chatMessage.Arg1)
 		case models.PART:
 			m := models.Message{
 				Type: command,
 				Name: string(chatMessage.Arg1),
 			}
 			n.messagesFromNinJam <- m
-			logrus.Infof(" %s leaved", chatMessage.Arg1)
+            logrus.Infof("%s leaved", chatMessage.Arg1)
 		}
 	}
 }
