@@ -48,7 +48,7 @@ func (cau *ClientAuthUser) Marshal() (data []byte, err error) {
 		data = append(data, byte(b))
 	}
 
-	logrus.Info("Username:", cau.Username)
+	logrus.Info("Username:", string(cau.Username))
 
 	data = append(data, cau.Username...)
 	data = append(data, byte(0x0))

@@ -6,7 +6,6 @@ import (
 	"github.com/luci/go-render/render"
 	"github.com/sirupsen/logrus"
 	"net"
-	"runtime"
 	"time"
 )
 
@@ -160,7 +159,7 @@ func (n *NinJamBot) connect() {
 		}
 	}()
 
-	go n.sendToServer(conn, toServerErrorChan)
+	go n.sendToServer(conn, toServerErrorChan, returnChan)
 
 	// запускаем обработку сообщений, отправляемых в Ninjam чат
 	go func() {
@@ -397,19 +396,23 @@ func (n *NinJamBot) read(conn net.Conn, returnChan chan bool) {
 }
 
 // получаем из канала ответы и пишем в сокет
-func (n *NinJamBot) sendToServer(conn net.Conn, toServerErrorChan chan bool) {
+func (n *NinJamBot) sendToServer(conn net.Conn, toServerErrorChan chan bool, returnChan chan bool) {
 	defer logrus.Debug("sendToServer finished")
 	for {
-		runtime.Gosched()
-		res := <-n.toServerChan
-		if len(res) < 200 {
-			logrus.Info("Sending to server: ", res)
-		}
-		_, err := conn.Write(res)
+		select {
+		case res := <-n.toServerChan:
+			if len(res) < 200 {
+				logrus.Info("Sending to server: ", res)
+			}
+			_, err := conn.Write(res)
 
-		if err != nil {
-			logrus.Error("Error writing sendToServer:", err.Error())
-			toServerErrorChan <- true
+			if err != nil {
+				logrus.Error("Error writing sendToServer:", err.Error())
+				toServerErrorChan <- true
+				return
+			}
+		case <-returnChan:
+			returnChan <- true
 			return
 		}
 	}
@@ -505,14 +508,14 @@ func (n *NinJamBot) handle(netMessage *models.NetMessage) {
 				Name: string(chatMessage.Arg1),
 			}
 			n.messagesFromNinJam <- m
-            logrus.Infof("%s joined", chatMessage.Arg1)
+			logrus.Infof("%s joined", chatMessage.Arg1)
 		case models.PART:
 			m := models.Message{
 				Type: command,
 				Name: string(chatMessage.Arg1),
 			}
 			n.messagesFromNinJam <- m
-            logrus.Infof("%s leaved", chatMessage.Arg1)
+			logrus.Infof("%s leaved", chatMessage.Arg1)
 		}
 	}
 }
