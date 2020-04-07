@@ -295,6 +295,41 @@ func (n *NinJamBot) ChannelInit(name string, flags ...uint8) {
 	n.toServerChan <- msg
 }
 
+// ChannelInit adds new channel
+// flags:  0 - ninjam interval based , 2 - voice chat, 4 - session mode
+func (n *NinJamBot) ChannelInitExtended(name string, flags uint8, volume int16, pan int8) {
+	if n.channelInfo == nil {
+		n.channelInfo = &models.ClientSetChannelInfo{
+			Channels: []models.ChannelInfo{
+				{
+					Name:   name,
+					Flags:  flags,
+					Volume: volume,
+					Pan:    pan,
+				},
+			},
+		}
+	} else {
+		n.channelInfo.Channels = append(n.channelInfo.Channels, models.ChannelInfo{
+			Name:   name,
+			Flags:  flags,
+			Volume: volume,
+			Pan:    pan,
+		}, )
+	}
+
+	nm := models.NewNetMessage(models.ClientSetChannelInfoType)
+
+	nm.OutPayload = n.channelInfo
+
+	msg, err := nm.Marshal()
+	if err != nil {
+		logrus.Error("Send message to ninjam marshal error:", err)
+	}
+
+	n.toServerChan <- msg
+}
+
 func (n *NinJamBot) IntervalBegin(guid [16]byte, channelIndex uint8) {
 	if n.inAuthNow {
 		return
