@@ -14,7 +14,7 @@ type ChannelInfo struct {
 	Name   string // NUL-terminated
 	Volume int16  // (dB gain, 0=0dB, 10=1dB, -30=-3dB, etc)
 	Pan    int8   // [-128, 127]
-	Flags  uint8
+	Flags  uint8  // 0 - ninjam interval based , 2 - voice chat, 4 - session mode
 }
 
 func (c *ClientSetChannelInfo) Marshal() (data []byte, err error) {

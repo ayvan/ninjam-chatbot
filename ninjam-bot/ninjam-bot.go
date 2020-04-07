@@ -23,6 +23,7 @@ type NinJamBot struct {
 	messagesFromNinJam chan models.Message
 	messagesToNinJam   chan string
 	adminMessages      chan string
+	channelInfo        *models.ClientSetChannelInfo
 
 	onSuccessAuth        func()
 	onServerConfigChange func(bpm, bpi uint)
@@ -258,18 +259,33 @@ func (n *NinJamBot) SetOnUserinfoChange(f func(user models.UserInfo)) {
 	n.onUserinfoChange = f
 }
 
-func (n *NinJamBot) ChannelInit(name string) {
-	channelInfo := &models.ClientSetChannelInfo{
-		Channels: []models.ChannelInfo{
-			{
-				Name: name,
+// ChannelInit adds new channel
+// flags:  0 - ninjam interval based , 2 - voice chat, 4 - session mode
+func (n *NinJamBot) ChannelInit(name string, flags ...uint8) {
+	var f uint8
+	if len(flags) > 0 {
+		f = flags[0]
+	}
+
+	if n.channelInfo == nil {
+		n.channelInfo = &models.ClientSetChannelInfo{
+			Channels: []models.ChannelInfo{
+				{
+					Name:  name,
+					Flags: f,
+				},
 			},
-		},
+		}
+	} else {
+		n.channelInfo.Channels = append(n.channelInfo.Channels, models.ChannelInfo{
+			Name:  name,
+			Flags: f,
+		}, )
 	}
 
 	nm := models.NewNetMessage(models.ClientSetChannelInfoType)
 
-	nm.OutPayload = channelInfo
+	nm.OutPayload = n.channelInfo
 
 	msg, err := nm.Marshal()
 	if err != nil {
