@@ -479,6 +479,8 @@ func (n *NinJamBot) handle(netMessage *models.NetMessage) {
 	switch netMessage.Type {
 	case models.ServerAuthChallengeType:
 		n.inAuthNow = true
+		// авторизация - удаляем каналы, затем должны будем заново их добавить - это делается функцией-коллбэком после авторизации
+		n.channelInfo = nil
 		go func() {
 			// через 10 секунд всё равно отключим режим авторизации, если даже не получим ответа - в крайнем случае
 			// по тикеру пошлём KeepAlive и переконнектимся после ошибки отправки
