@@ -13,16 +13,12 @@ GO_DEPS=$(GO_CMD) get -d -v
 GO_DEPS_UPDATE=$(GO_CMD) get -d -v -u
 GO_FMT=$(GO_CMD) fmt
 
-.PHONY: all tools_install build test test-verbose deps clean
+.PHONY: all build test test-verbose deps clean
 
 all: build
 	@echo "Successfully built!";
 
-tools_install:
-	@echo "Installing tools..."; \
-	go get github.com/golang/lint/golint || exit 1;
-
-build: tools_install deps
+build: deps
 	@echo "Build..."; \
 	$(GO_BUILD) -o $(APP_NAME)|| exit 1;
 

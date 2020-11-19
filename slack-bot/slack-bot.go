@@ -3,7 +3,7 @@ package slack_bot
 import (
 	"encoding/json"
 	"github.com/ayvan/ninjam-chatbot/models"
-	"github.com/nlopes/slack"
+	"github.com/slack-go/slack"
 	"github.com/sirupsen/logrus"
 	"regexp"
 	"strings"
