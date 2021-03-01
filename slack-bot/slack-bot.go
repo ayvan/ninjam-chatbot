@@ -95,10 +95,9 @@ func (sb *SlackBot) connect() {
 	rtm := api.NewRTM()
 	go rtm.ManageConnection()
 
-	cnls, err := rtm.GetChannels(true)
-
+	cnls, _, err := rtm.GetConversations(&slack.GetConversationsParameters{ExcludeArchived: "true"})
 	if err != nil {
-		logrus.Errorf("Slack GetChannels error: %s", err)
+		logrus.Errorf("Slack GetConversations error: %s", err)
 	}
 
 	for _, c := range cnls {
